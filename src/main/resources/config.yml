@@ -1,0 +1,23 @@
+# HeadDrops Plugin Configuration
+# Created by @BaconCat1
+# Copyright (C) 2025 BaconCat1
+# Licensed under the GNU General Public License v3.0
+
+drop:
+  require-player-kill: true
+  drop-chance: 100.0
+
+serial:
+  enabled: true
+  mode: "random" # random | incremental
+  visible: true
+
+lore:
+  title: "&6%player%'s Head"
+  timestamp-line: "&7Killed on: &f%timestamp%"
+  killer-line: "&7Killer: &f%killer%"
+  serial-line: "&7Serial: &f%serial%"
+  killer-unknown: "Unknown"
+  serial-unknown: "N/A"
+  timestamp-format: "yyyy-MM-dd HH:mm:ss"
+  timezone: "UTC"
