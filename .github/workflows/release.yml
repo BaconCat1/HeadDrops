@@ -31,7 +31,8 @@ jobs:
     - name: Get version from build.gradle
       id: get_version
       run: |
-        VERSION=$(grep '^version =' build.gradle | sed 's/version = //' | tr -d "'")
+        # Read the project version from build.gradle (strips quotes)
+        VERSION=$(grep '^version' build.gradle | head -n1 | sed -E "s/.*version\s*=\s*['\"]?([^'\"]+)['\"]?/\1/")
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Generate release notes
@@ -50,8 +51,22 @@ jobs:
         echo "- Commit: $(git rev-parse HEAD)" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: Rename JAR for release
-      run: cp ./build/libs/HeadDrops-${{ steps.get_version.outputs.version }}-SNAPSHOT.jar ./HeadDrops-${{ inputs.version }}.jar
+    - name: Locate built JAR and rename for release
+      id: locate_jar
+      run: |
+        set -e
+        echo "Looking for plugin JAR in build/libs..."
+        ARTIFACT=$(ls build/libs/HeadDrops*.jar 2>/dev/null | head -n1 || true)
+        if [ -z "$ARTIFACT" ]; then
+          echo "No HeadDrops JAR found in build/libs. Listing contents:" >&2
+          ls -la build/libs || true
+          exit 1
+        fi
+        echo "Found artifact: $ARTIFACT"
+        TARGET=HeadDrops-${{ inputs.version }}.jar
+        cp "$ARTIFACT" "$TARGET"
+        echo "artifact_path=$ARTIFACT" >> $GITHUB_OUTPUT
+        echo "release_jar=$TARGET" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
