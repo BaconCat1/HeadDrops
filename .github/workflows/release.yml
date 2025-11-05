@@ -1,0 +1,64 @@
+name: Release HeadDrops Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Get version from build.gradle
+      id: get_version
+      run: |
+        VERSION=$(grep '^version =' build.gradle | sed 's/version = //' | tr -d "'")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        # Generate simple release notes from recent commits
+        NOTES=$(git log --oneline -10 | sed 's/^/- /')
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        echo "## Release ${{ inputs.version }}" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo "### Changes" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo "### Build Information" >> $GITHUB_OUTPUT
+        echo "- Built on: $(date)" >> $GITHUB_OUTPUT
+        echo "- Commit: $(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Rename JAR for release
+      run: cp ./build/libs/HeadDrops-${{ steps.get_version.outputs.version }}-SNAPSHOT.jar ./HeadDrops-${{ inputs.version }}.jar
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ inputs.version }}
+        name: HeadDrops ${{ inputs.version }}
+        body: ${{ steps.release_notes.outputs.notes }}
+        draft: false
+        prerelease: false
+        files: ./HeadDrops-${{ inputs.version }}.jar

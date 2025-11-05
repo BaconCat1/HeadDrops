@@ -10,12 +10,15 @@ A Folia-compatible Minecraft plugin for Minecraft 1.21.8 that drops player heads
 - Folia region-aware for performance
 - Customizable lore templates
 
-## Installation
+## Building and Releasing
 
-1. Build the plugin: `./gradlew build`
-2. Copy `build/libs/HeadDrops-1.0-SNAPSHOT.jar` to your server's `plugins/` folder
-3. Restart the server or reload plugins
-4. Configure in `plugins/HeadDrops/config.yml`
+To build locally:
+```bash
+./gradlew build
+```
+
+The plugin JAR will be in `build/libs/`.
+
 
 ## Configuration
 
